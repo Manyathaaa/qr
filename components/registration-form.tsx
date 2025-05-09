@@ -78,16 +78,19 @@ export function RegistrationForm() {
         throw new Error(responseData.error || "Failed to register");
       }
 
-      // Store registration data in localStorage
-      localStorage.setItem("userName", data.name);
-      localStorage.setItem("registrationData", JSON.stringify(responseData.user));
-
       toast({
         title: "Registration Successful",
         description: `Welcome, ${data.name}!`,
       });
 
-      router.push("/registration-success");
+      // Pass data through URL parameters
+      const params = new URLSearchParams({
+        name: data.name,
+        email: data.email,
+        qrCodeId: responseData.qrCodeId,
+      });
+
+      router.push(`/registration-success?${params.toString()}`);
     } catch (error) {
       console.error("Registration error:", error);
       toast({
