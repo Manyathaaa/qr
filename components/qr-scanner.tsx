@@ -100,10 +100,38 @@ export function QrScanner() {
   
   const handleScanResult = async (data: string) => {
     try {
-      // Parse the QR code data
-      const scannedData = JSON.parse(data);
+      console.log('Raw QR code data:', data);
+      
+      let scannedData;
+      try {
+        // First try parsing as JSON
+        scannedData = JSON.parse(data);
+        console.log('Parsed as JSON:', scannedData);
+      } catch (e) {
+        // If that fails, try parsing the string directly
+        console.log('Failed to parse as JSON, trying direct string');
+        scannedData = data;
+      }
+      
+      // If scannedData is a string, try parsing it as JSON again
+      if (typeof scannedData === 'string') {
+        try {
+          scannedData = JSON.parse(scannedData);
+          console.log('Parsed string as JSON:', scannedData);
+        } catch (e) {
+          console.log('Failed to parse string as JSON');
+        }
+      }
+      
+      console.log('Final scanned data:', scannedData);
       
       if (!scannedData.qrCodeId || !scannedData.name || !scannedData.email) {
+        console.log('Missing required fields:', {
+          hasQrCodeId: !!scannedData.qrCodeId,
+          hasName: !!scannedData.name,
+          hasEmail: !!scannedData.email,
+          data: scannedData
+        });
         setScanResult({
           success: false,
           message: "Invalid QR code format. Please try again."
@@ -149,6 +177,7 @@ export function QrScanner() {
         });
       }
     } catch (error) {
+      console.error('Error processing QR code:', error);
       // Invalid QR code
       setScanResult({
         success: false,

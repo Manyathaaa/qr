@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import QRCodeLib from "qrcode";
 
 interface QRCodeProps {
   value: string;
@@ -12,53 +13,31 @@ export function QRCode({ value, size = 200 }: QRCodeProps) {
   const [qrCodeSrc, setQrCodeSrc] = useState<string>("");
 
   useEffect(() => {
-    // On the client, we'll load the QR code library dynamically
-    const loadQRCode = async () => {
+    const generateQRCode = async () => {
       try {
-        const QRCodeStyling = (await import("qr-code-styling")).default;
-
-        const qrCode = new QRCodeStyling({
+        console.log('Generating QR code with value:', value);
+        console.log('Value type:', typeof value);
+        
+        // Ensure value is a string
+        const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+        console.log('String value:', stringValue);
+        
+        const qrDataUrl = await QRCodeLib.toDataURL(stringValue, {
           width: size,
-          height: size,
-          type: "svg",
-          data: value,
-          dotsOptions: {
-            color: "currentColor",
-            type: "rounded",
-          },
-          cornersSquareOptions: {
-            type: "extra-rounded",
-          },
-          backgroundOptions: {
-            color: "transparent",
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#ffffff',
           },
         });
-
-        const rawData = await qrCode.getRawData("svg");
-        if (rawData) {
-          const blob =
-            rawData instanceof Blob
-              ? rawData
-              : new Blob([rawData], { type: "image/svg+xml" });
-          const url = URL.createObjectURL(blob);
-          setQrCodeSrc(url);
-
-          // Clean up URL object when component unmounts
-          return () => URL.revokeObjectURL(url);
-        }
+        setQrCodeSrc(qrDataUrl);
       } catch (error) {
         console.error("Failed to generate QR code:", error);
-        // Fallback to a simple API-generated QR code
-        setQrCodeSrc(
-          `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(
-            value
-          )}`
-        );
       }
     };
 
     if (value) {
-      loadQRCode();
+      generateQRCode();
     }
   }, [value, size]);
 
