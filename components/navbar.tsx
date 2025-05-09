@@ -4,7 +4,6 @@ import { QrCode } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 
 const Navbar = () => {
@@ -71,7 +70,6 @@ const Navbar = () => {
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <ThemeToggle />
           <Button asChild className="hidden md:flex">
             <Link href="/register">Register Now</Link>
           </Button>
