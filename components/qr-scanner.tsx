@@ -100,40 +100,54 @@ export function QrScanner() {
     }
   };
   
-  const handleScanResult = (data: string) => {
+  const handleScanResult = async (data: string) => {
     try {
       // Parse the QR code data
       const scannedData = JSON.parse(data);
       
-      // Find the attendee in our data
-      const foundAttendee = attendees.find(a => a.id === scannedData.id);
-      
-      if (foundAttendee) {
-        if (foundAttendee.checkedIn) {
-          // Already checked in
-          setScanResult({
-            success: true,
-            message: `${foundAttendee.name} is already checked in.`,
-            attendee: foundAttendee
-          });
-        } else {
-          // Valid attendee, not checked in yet
-          setScanResult({
-            success: true,
-            message: `${foundAttendee.name} successfully checked in!`,
-            attendee: foundAttendee
-          });
-          
-          toast({
-            title: "Check-in successful!",
-            description: `${foundAttendee.name} has been checked in.`,
-          });
-        }
-      } else {
-        // QR code valid but attendee not found
+      if (!scannedData.qrCodeId || !scannedData.name || !scannedData.email) {
         setScanResult({
           success: false,
-          message: "Attendee not found in the system."
+          message: "Invalid QR code format. Please try again."
+        });
+        return;
+      }
+
+      // Call the check-in API
+      const response = await fetch('/api/checkin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          qrCodeId: scannedData.qrCodeId,
+          name: scannedData.name,
+          email: scannedData.email,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setScanResult({
+          success: true,
+          message: `${scannedData.name} successfully checked in!`,
+          attendee: {
+            id: scannedData.qrCodeId,
+            name: scannedData.name,
+            email: scannedData.email,
+            checkedIn: true
+          }
+        });
+        
+        toast({
+          title: "Check-in successful!",
+          description: `${scannedData.name} has been checked in.`,
+        });
+      } else {
+        setScanResult({
+          success: false,
+          message: result.error || "Check-in failed. Please try again."
         });
       }
     } catch (error) {
