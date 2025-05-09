@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, QrCode, RefreshCcw, AlertCircle, CheckCircle2 } from "lucide-react";
-import { attendees } from "@/lib/data";
 import { Attendee } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import jsQR from "jsqr";
 
 export function QrScanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -74,29 +74,27 @@ export function QrScanner() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     
     try {
-      // Include QR code detection logic here
-      // For this demo, we'll simulate a successful scan after a delay
+      // Get image data from canvas
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
       
-      // In a real app, you would use a library like jsQR:
-      // const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      // const code = jsQR(imageData.data, imageData.width, imageData.height);
-      // if (code) { handle code.data }
+      // Scan for QR code
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
       
-      // Simulate scanning process
+      if (code) {
+        // Found a QR code
+        handleScanResult(code.data);
+        return;
+      }
+      
+      // Continue scanning if no QR code found
       if (scanning) {
-        setTimeout(() => {
-          // Simulate finding a valid QR code
-          const fakeQrData = JSON.stringify({
-            id: "att_3", // This ID matches one of our sample attendees
-            name: "Emily Johnson",
-            email: "emily.johnson@example.com"
-          });
-          
-          handleScanResult(fakeQrData);
-        }, 2000);
+        animationRef.current = requestAnimationFrame(scanQRCode);
       }
     } catch (error) {
       console.error("Error scanning QR code:", error);
+      if (scanning) {
+        animationRef.current = requestAnimationFrame(scanQRCode);
+      }
     }
   };
   
