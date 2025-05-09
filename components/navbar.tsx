@@ -51,13 +51,22 @@ const Navbar = () => {
               Dashboard
             </Link>
             <Link
-              href="/scan"
+              href="/event-register"
               className={cn(
                 "text-sm font-medium transition-colors hover:text-primary",
-                isActive("/scan") ? "text-primary" : "text-muted-foreground"
+                isActive("/event-register") ? "text-primary" : "text-muted-foreground"
               )}
             >
               Scan
+            </Link>
+            <Link
+              href="/create-event"
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-primary",
+                isActive("/create-event") && "text-primary"
+              )}
+            >
+              Create Event
             </Link>
           </nav>
         </div>
