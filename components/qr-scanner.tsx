@@ -52,16 +52,27 @@ export function QrScanner() {
   };
   
   const scanQRCode = async () => {
-    if (!videoRef.current || !canvasRef.current || !scanning) return;
+    if (!videoRef.current || !canvasRef.current || !scanning) {
+      console.log('Scanning conditions not met:', {
+        hasVideo: !!videoRef.current,
+        hasCanvas: !!canvasRef.current,
+        isScanning: scanning
+      });
+      return;
+    }
     
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
     
-    if (!context) return;
+    if (!context) {
+      console.log('No canvas context available');
+      return;
+    }
     
     // Wait until video is loaded
     if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      console.log('Video not ready:', video.readyState);
       animationRef.current = requestAnimationFrame(scanQRCode);
       return;
     }
@@ -74,6 +85,7 @@ export function QrScanner() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     
     try {
+      console.log('Attempting to scan QR code...');
       // Get image data from canvas
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
       
@@ -81,9 +93,12 @@ export function QrScanner() {
       const code = jsQR(imageData.data, imageData.width, imageData.height);
       
       if (code) {
+        console.log('QR code found:', code.data);
         // Found a QR code
         handleScanResult(code.data);
         return;
+      } else {
+        console.log('No QR code found in frame');
       }
       
       // Continue scanning if no QR code found
