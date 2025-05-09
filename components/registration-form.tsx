@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
-const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+const phoneRegex = /^(\+91|91)?[6-9]\d{9}$/;
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -27,8 +27,23 @@ const formSchema = z.object({
     message: "Please enter a valid email address.",
   }),
   phone: z.string().regex(phoneRegex, {
-    message: "Please enter a valid phone number.",
+    message: "Please enter a valid Indian phone number.",
   }),
+  college: z.string().min(2, {
+    message: "College name must be at least 2 characters.",
+  }),
+  address: z.string().min(5, {
+    message: "Address must be at least 5 characters.",
+  }),
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters.",
+  }),
+  confirmPassword: z.string().min(6, {
+    message: "Confirm Password must be at least 6 characters.",
+  }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match.",
+  path: ["confirmPassword"],
 });
 
 export function RegistrationForm() {
@@ -37,96 +52,96 @@ export function RegistrationForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-    },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // In a real app, you would send this data to your backend
-    console.log(values);
-    
-    // Show success toast
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    // Store user info in localStorage or sessionStorage
+    localStorage.setItem("userName", data.name);
+
+    // Display a success toast
     toast({
-      title: "Registration successful!",
-      description: "You've been registered for the event.",
+      title: "Registration Successful",
+      description: `Welcome, ${data.name}!`,
     });
-    
-    // Generate a unique ID for this registration
-    const registrationId = `reg_${Date.now().toString(36)}`;
-    
-    // Store in localStorage for demo purposes
-    localStorage.setItem(
-      "eventRegistration", 
-      JSON.stringify({
-        id: registrationId,
-        ...values,
-        registeredAt: new Date().toISOString(),
-        checkedIn: false,
-      })
-    );
-    
-    // Redirect to success page with the registration ID
-    router.push(`/success?id=${registrationId}`);
-  }
+
+    // Redirect to home page after successful registration
+    router.push("/dashboard");
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your full name" {...field} />
-              </FormControl>
-              <FormDescription>
-                Your name as it should appear on the event badge.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="you@example.com" type="email" {...field} />
-              </FormControl>
-              <FormDescription>
-                We'll send your event details to this email.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number</FormLabel>
-              <FormControl>
-                <Input placeholder="+1 (555) 123-4567" {...field} />
-              </FormControl>
-              <FormDescription>
-                For event updates and emergency communications.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <Button type="submit" className="w-full">Register for Event</Button>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FormField name="name" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Name</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField name="email" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input type="email" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField name="phone" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Phone</FormLabel>
+            <FormControl>
+              <Input type="tel" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField name="college" render={({ field }) => (
+          <FormItem>
+            <FormLabel>College</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField name="address" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Address</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField name="password" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Password</FormLabel>
+            <FormControl>
+              <Input type="password" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField name="confirmPassword" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Confirm Password</FormLabel>
+            <FormControl>
+              <Input type="password" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <Button type="submit">Register</Button>
       </form>
     </Form>
   );

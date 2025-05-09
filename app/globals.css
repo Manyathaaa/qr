@@ -80,3 +80,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-item {
+  margin-bottom: 20px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+}
+
