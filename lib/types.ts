@@ -2,8 +2,8 @@ export type Attendee = {
   id: string;
   name: string;
   email: string;
-  phone: string;
-  registeredAt: string;
+  phone?: string;
+  registeredAt?: string;
   checkedIn: boolean;
   checkedInAt?: string;
 };

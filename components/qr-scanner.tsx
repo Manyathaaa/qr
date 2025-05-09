@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, QrCode, RefreshCcw, AlertCircle, CheckCircle2 } from "lucide-react";
-import { attendees } from "@/lib/data";
 import { Attendee } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import jsQR from "jsqr";
 
 export function QrScanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -74,66 +74,78 @@ export function QrScanner() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     
     try {
-      // Include QR code detection logic here
-      // For this demo, we'll simulate a successful scan after a delay
+      // Get image data from canvas
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
       
-      // In a real app, you would use a library like jsQR:
-      // const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      // const code = jsQR(imageData.data, imageData.width, imageData.height);
-      // if (code) { handle code.data }
+      // Scan for QR code
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
       
-      // Simulate scanning process
+      if (code) {
+        // Found a QR code
+        handleScanResult(code.data);
+        return;
+      }
+      
+      // Continue scanning if no QR code found
       if (scanning) {
-        setTimeout(() => {
-          // Simulate finding a valid QR code
-          const fakeQrData = JSON.stringify({
-            id: "att_3", // This ID matches one of our sample attendees
-            name: "Emily Johnson",
-            email: "emily.johnson@example.com"
-          });
-          
-          handleScanResult(fakeQrData);
-        }, 2000);
+        animationRef.current = requestAnimationFrame(scanQRCode);
       }
     } catch (error) {
       console.error("Error scanning QR code:", error);
+      if (scanning) {
+        animationRef.current = requestAnimationFrame(scanQRCode);
+      }
     }
   };
   
-  const handleScanResult = (data: string) => {
+  const handleScanResult = async (data: string) => {
     try {
       // Parse the QR code data
       const scannedData = JSON.parse(data);
       
-      // Find the attendee in our data
-      const foundAttendee = attendees.find(a => a.id === scannedData.id);
-      
-      if (foundAttendee) {
-        if (foundAttendee.checkedIn) {
-          // Already checked in
-          setScanResult({
-            success: true,
-            message: `${foundAttendee.name} is already checked in.`,
-            attendee: foundAttendee
-          });
-        } else {
-          // Valid attendee, not checked in yet
-          setScanResult({
-            success: true,
-            message: `${foundAttendee.name} successfully checked in!`,
-            attendee: foundAttendee
-          });
-          
-          toast({
-            title: "Check-in successful!",
-            description: `${foundAttendee.name} has been checked in.`,
-          });
-        }
-      } else {
-        // QR code valid but attendee not found
+      if (!scannedData.qrCodeId || !scannedData.name || !scannedData.email) {
         setScanResult({
           success: false,
-          message: "Attendee not found in the system."
+          message: "Invalid QR code format. Please try again."
+        });
+        return;
+      }
+
+      // Call the check-in API
+      const response = await fetch('/api/checkin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          qrCodeId: scannedData.qrCodeId,
+          name: scannedData.name,
+          email: scannedData.email,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setScanResult({
+          success: true,
+          message: `${scannedData.name} successfully checked in!`,
+          attendee: {
+            id: scannedData.qrCodeId,
+            name: scannedData.name,
+            email: scannedData.email,
+            checkedIn: true
+          }
+        });
+        
+        toast({
+          title: "Check-in successful!",
+          description: `${scannedData.name} has been checked in.`,
+        });
+      } else {
+        setScanResult({
+          success: false,
+          message: result.error || "Check-in failed. Please try again."
         });
       }
     } catch (error) {
