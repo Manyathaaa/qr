@@ -26,17 +26,23 @@ const DashboardPage = () => {
     fetchEvents();
   }, []);
 
-  const handleEventChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleEventChange = async (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const selectedEventId = event.target.value;
     setSelectedEvent(selectedEventId);
 
     // Fetch event details
-    const selectedEventData = events.find((event) => event.id === selectedEventId);
+    const selectedEventData = events.find(
+      (event) => event.id === selectedEventId
+    );
     setEventDetails(selectedEventData);
 
     // Fetch attendees for the selected event
     try {
-      const response = await axios.get(`http://localhost:5000/api/attendees/${selectedEventId}`);
+      const response = await axios.get(
+        `http://localhost:5000/api/attendees/${selectedEventId}`
+      );
       setAttendees(response.data);
     } catch (error) {
       console.error("Error fetching attendees:", error);
@@ -54,7 +60,9 @@ const DashboardPage = () => {
 
       {/* Event Selection Dropdown */}
       <div className="mb-4">
-        <label htmlFor="event-select" className="block text-sm font-medium">Select Event</label>
+        <label htmlFor="event-select" className="block text-sm font-medium">
+          Select Event
+        </label>
         <select
           id="event-select"
           onChange={handleEventChange}
@@ -73,9 +81,15 @@ const DashboardPage = () => {
       {eventDetails && (
         <div className="event-details mb-6">
           <h3 className="text-xl font-semibold">{eventDetails.name}</h3>
-          <p><strong>Date:</strong> {eventDetails.date}</p>
-          <p><strong>Location:</strong> {eventDetails.location}</p>
-          <p><strong>Description:</strong> {eventDetails.description}</p>
+          <p>
+            <strong>Date:</strong> {eventDetails.date}
+          </p>
+          <p>
+            <strong>Location:</strong> {eventDetails.location}
+          </p>
+          <p>
+            <strong>Description:</strong> {eventDetails.description}
+          </p>
         </div>
       )}
 

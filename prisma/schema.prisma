@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+        
+model registration {
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  phone           String
+  college         String
+  address         String
+  password        String
+  createdAt       DateTime @default(now())
+}
+
+model qrCode {
+  id              String   @id @default(uuid())
+  data            String
+  checkedIn       Boolean  @default(false)
+  checkedInAt     DateTime?
+  createdAt       DateTime @default(now())
+  checkIn         CheckIn?
+}
+
+model CheckIn {
+  id              String   @id @default(uuid())
+  name            String
+  email           String
+  checkedInAt     DateTime @default(now())
+  qrCode          qrCode   @relation(fields: [qrCodeId], references: [id])
+  qrCodeId        String   @unique
+}

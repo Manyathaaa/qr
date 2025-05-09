@@ -11,6 +11,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@next/swc-wasm-nodejs": "13.5.1",
+    "@prisma/client": "^6.7.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-aspect-ratio": "^1.1.0",
@@ -41,8 +42,11 @@
     "@types/node": "20.6.2",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
+    "@yudiel/react-qr-scanner": "^2.3.1",
     "autoprefixer": "10.4.15",
     "axios": "^1.9.0",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -52,9 +56,11 @@
     "eslint-config-next": "13.5.1",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.446.0",
+    "mongoose": "^8.14.2",
     "next": "13.5.1",
     "next-themes": "^0.3.0",
     "postcss": "8.4.30",
+    "prisma": "^6.7.0",
     "qr-code-styling": "^1.6.0-rc.1",
     "qrcode.react": "^4.2.0",
     "react": "18.2.0",
@@ -70,5 +76,8 @@
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2"
   }
 }
