@@ -11,21 +11,44 @@ export default function ScannerPage() {
   const handleScan = async (detectedCodes: IDetectedBarcode[]) => {
     if (detectedCodes.length > 0) {
       try {
-        const data = JSON.parse(detectedCodes[0].rawValue);
-        if (!data.id) {
-          setError('Invalid QR code format');
+        console.log('Scanned QR code raw value:', detectedCodes[0].rawValue);
+
+        let data;
+        try {
+          data = JSON.parse(detectedCodes[0].rawValue);
+        } catch (err) {
+          setError('QR code is not in JSON format');
           return;
         }
 
+        const qrCodeId = data.qrCodeId || data.id;
+        const name = data.name;
+        const email = data.email;
+
+        if (!qrCodeId || !name || !email) {
+          setError('Invalid QR code format. Ensure it contains id, name, and email.');
+          return;
+        }
+
+        // Verify email in the registration database
+        const userResponse = await fetch(`/api/checkins?email=${encodeURIComponent(email)}`);
+        const userResult = await userResponse.json();
+
+        if (!userResponse.ok) {
+          setError(userResult.error || 'Email not found in the registration database.');
+          return;
+        }
+
+        // Call the check-in API
         const response = await fetch('/api/checkin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
-            qrCodeId: data.id,
-            name: data.name,
-            email: data.email
+          body: JSON.stringify({
+            qrCodeId,
+            name,
+            email,
           }),
         });
 
@@ -36,16 +59,17 @@ export default function ScannerPage() {
           return;
         }
 
-        setSuccess(`Successfully checked in ${data.name}`);
+        setSuccess(`Successfully checked in ${name}`);
         setScanResult(detectedCodes[0].rawValue);
       } catch (err) {
-        setError('Failed to process QR code');
+        setError('Failed to process QR code. Ensure it is in valid JSON format.');
+        console.error('Error processing QR code:', err);
       }
     }
   };
 
   const handleError = (error: unknown) => {
-    setError(error instanceof Error ? error.message : 'An error occurred');
+    setError(error instanceof Error ? error.message : 'An error occurred while scanning.');
   };
 
   return (
@@ -98,4 +122,4 @@ export default function ScannerPage() {
       </div>
     </div>
   );
-} 
+}

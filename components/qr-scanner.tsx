@@ -113,95 +113,92 @@ export function QrScanner() {
     }
   };
   
-  const handleScanResult = async (data: string) => {
+const handleScanResult = async (data: string) => {
+  try {
+    console.log("Raw QR code data:", data);
+
+    let scannedData;
     try {
-      console.log('Raw QR code data:', data);
-      
-      let scannedData;
-      try {
-        // First try parsing as JSON
-        scannedData = JSON.parse(data);
-        console.log('Parsed as JSON:', scannedData);
-      } catch (e) {
-        // If that fails, try parsing the string directly
-        console.log('Failed to parse as JSON, trying direct string');
-        scannedData = data;
-      }
-      
-      // If scannedData is a string, try parsing it as JSON again
-      if (typeof scannedData === 'string') {
-        try {
-          scannedData = JSON.parse(scannedData);
-          console.log('Parsed string as JSON:', scannedData);
-        } catch (e) {
-          console.log('Failed to parse string as JSON');
-        }
-      }
-      
-      console.log('Final scanned data:', scannedData);
-      
-      if (!scannedData.qrCodeId || !scannedData.name || !scannedData.email) {
-        console.log('Missing required fields:', {
-          hasQrCodeId: !!scannedData.qrCodeId,
-          hasName: !!scannedData.name,
-          hasEmail: !!scannedData.email,
-          data: scannedData
-        });
-        setScanResult({
-          success: false,
-          message: "Invalid QR code format. Please try again."
-        });
-        return;
-      }
-
-      // Call the check-in API
-      const response = await fetch('/api/checkin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          qrCodeId: scannedData.qrCodeId,
-          name: scannedData.name,
-          email: scannedData.email,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setScanResult({
-          success: true,
-          message: `${scannedData.name} successfully checked in!`,
-          attendee: {
-            id: scannedData.qrCodeId,
-            name: scannedData.name,
-            email: scannedData.email,
-            checkedIn: true
-          }
-        });
-        
-        toast({
-          title: "Check-in successful!",
-          description: `${scannedData.name} has been checked in.`,
-        });
-      } else {
-        setScanResult({
-          success: false,
-          message: result.error || "Check-in failed. Please try again."
-        });
-      }
-    } catch (error) {
-      console.error('Error processing QR code:', error);
-      // Invalid QR code
+      // First try parsing as JSON
+      scannedData = JSON.parse(data);
+      console.log("Parsed as JSON:", scannedData);
+    } catch (e) {
+      // If that fails, log the error and return
+      console.log("Failed to parse as JSON. Raw data:", data);
       setScanResult({
         success: false,
-        message: "Invalid QR code. Please try again."
+        message: "QR code is not in JSON format. Please try again.",
+      });
+      return;
+    }
+
+    // Map fields if necessary (e.g., id -> qrCodeId)
+    const qrCodeId = scannedData.qrCodeId || scannedData.id;
+    const name = scannedData.name;
+    const email = scannedData.email;
+
+    // Validate required fields
+    if (!qrCodeId || !name || !email) {
+      console.log("Missing required fields:", {
+        hasQrCodeId: !!qrCodeId,
+        hasName: !!name,
+        hasEmail: !!email,
+        data: scannedData,
+      });
+      setScanResult({
+        success: false,
+        message: "Invalid QR code format. Ensure it contains id, name, and email.",
+      });
+      return;
+    }
+
+    // Call the check-in API
+    const response = await fetch("/api/checkin", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        qrCodeId,
+        name,
+        email,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      setScanResult({
+        success: true,
+        message: `${name} successfully checked in!`,
+        attendee: {
+          id: qrCodeId,
+          name,
+          email,
+          checkedIn: true,
+        },
+      });
+
+      toast({
+        title: "Check-in successful!",
+        description: `${name} has been checked in.`,
+      });
+    } else {
+      setScanResult({
+        success: false,
+        message: result.error || "Check-in failed. Please try again.",
       });
     }
-    
-    stopScanner();
-  };
+  } catch (error) {
+    console.error("Error processing QR code:", error);
+    setScanResult({
+      success: false,
+      message: "Invalid QR code. Please try again.",
+    });
+  }
+
+  stopScanner();
+};
   
   useEffect(() => {
     return () => {
